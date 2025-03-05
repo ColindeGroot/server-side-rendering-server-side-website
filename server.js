@@ -6,17 +6,34 @@ import express from 'express'
 import { Liquid } from 'liquidjs';
 
 
-console.log('Hieronder moet je waarschijnlijk nog wat veranderen')
-// Doe een fetch naar de data die je nodig hebt
-// const apiResponse = await fetch('...')
+console.log('Test')
 
-// Lees van de response van die fetch het JSON object in, waar we iets mee kunnen doen
-// const apiResponseJSON = await apiResponse.json()
+const showsResponse = await fetch('https://fdnd-agency.directus.app/items/mh_shows');
+const showsResponseJSON = await showsResponse.json();
 
-// Controleer eventueel de data in je console
-// (Let op: dit is _niet_ de console van je browser, maar van NodeJS, in je terminal)
-// console.log(apiResponseJSON)
+const showResponse = await fetch('https://fdnd-agency.directus.app/items/mh_show');
+const showResponseJSON = await showResponse.json();
 
+const usersResponse = await fetch('https://fdnd-agency.directus.app/items/mh_users');
+const usersResponseJSON = await usersResponse.json();
+
+const radiostationsResponse = await fetch('https://fdnd-agency.directus.app/items/mh_radiostations');
+const radiostationsResponseJSON = await radiostationsResponse.json();
+
+const chatsResponse = await fetch('https://fdnd-agency.directus.app/items/mh_chats');
+const chatsResponseJSON = await chatsResponse.json();
+
+const radiostations = radiostationsResponseJSON.data.map(station => ({
+  id: station.id,
+  name: station.name
+}));
+
+console.log(showsResponseJSON);
+console.log(showResponseJSON);
+console.log(usersResponseJSON);
+console.log(radiostationsResponseJSON);
+console.log(chatsResponseJSON);
+console.log(radiostations);
 
 // Maak een nieuwe Express applicatie aan, waarin we de server configureren
 const app = express()
@@ -35,9 +52,7 @@ app.set('views', './views')
 
 // Maak een GET route voor de index (meestal doe je dit in de root, als /)
 app.get('/', async function (request, response) {
-   // Render index.liquid uit de Views map
-   // Geef hier eventueel data aan mee
-   response.render('index.liquid')
+   response.render('index.liquid', {radiostations: radiostationsResponseJSON.data})
 })
 
 // Maak een POST route voor de index; hiermee kun je bijvoorbeeld formulieren afvangen
@@ -48,8 +63,18 @@ app.post('/', async function (request, response) {
   response.redirect(303, '/')
 })
 
-// Stel het poortnummer in waar Express op moet gaan luisteren
-// Lokaal is dit poort 8000, als dit ergens gehost wordt, is het waarschijnlijk poort 80
+
+app.get('/radio/:id', async function (request, response) {
+  const radioId = request.params.id;
+
+  // Zoek het juiste radiostation op basis van de ID
+  const station = radiostations.find(station => station.id == radioId);
+
+  // Render de radiopagina en geef de gegevens van het station door
+  response.render('radio.liquid', { station });
+});
+
+
 app.set('port', process.env.PORT || 8000)
 
 // Start Express op, haal daarbij het zojuist ingestelde poortnummer op
