@@ -1,1 +1,18 @@
-Succes!
+{% render 'partials/head.liquid'%}
+
+<h1>Radiostations</h1>
+
+<p>Kies een radiostation</p>
+
+{% for radiostation in radiostations %}
+
+<div class="radiostation">
+    <a href="/station/{{radiostation.id}}">
+        <h2>{{ radiostation.name }}</h2>
+        <img src="https://fdnd-agency.directus.app/assets/{{radiostation.logo}}" alt="">
+    </a>
+</div>
+
+{% endfor %}
+
+{% render 'partials/foot.liquid'%}
