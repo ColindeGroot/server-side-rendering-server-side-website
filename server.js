@@ -6,7 +6,7 @@ import express from 'express'
 import { Liquid } from 'liquidjs';
 
 
-console.log('Test')
+// console.log('Test')
 
 const showsResponse = await fetch('https://fdnd-agency.directus.app/items/mh_shows');
 const showsResponseJSON = await showsResponse.json();
@@ -28,12 +28,12 @@ const radiostations = radiostationsResponseJSON.data.map(station => ({
   name: station.name
 }));
 
-console.log(showsResponseJSON);
-console.log(showResponseJSON);
-console.log(usersResponseJSON);
-console.log(radiostationsResponseJSON);
-console.log(chatsResponseJSON);
-console.log(radiostations);
+// console.log(showsResponseJSON);
+// console.log(showResponseJSON);
+// console.log(usersResponseJSON);
+// console.log(radiostationsResponseJSON);
+// console.log(chatsResponseJSON);
+// console.log(radiostations);
 
 // Maak een nieuwe Express applicatie aan, waarin we de server configureren
 const app = express()
@@ -65,13 +65,40 @@ app.post('/', async function (request, response) {
 
 
 app.get('/radio/:id', async function (request, response) {
-  const radioId = request.params.id;
-
+  const radioId = parseInt(request.params.id);
   // Zoek het juiste radiostation op basis van de ID
-  const station = radiostations.find(station => station.id == radioId);
+  const showsPerDayResponse = await fetch('https://fdnd-agency.directus.app/items/mh_day?fields=date,shows.mh_shows_id.from,shows.mh_shows_id.until,shows.mh_shows_id.show.body,shows.mh_shows_id.show.radiostation.*');
+  const showsPerDayResponseJSON = await showsPerDayResponse.json();
+
+  const todaysWeekDay = new Date().getDay();
+  const todayShows = showsPerDayResponseJSON.data.filter(({ date }) => new Date(date).getDay() === todaysWeekDay)[0];
+  
+  const todayShowsForRadioStation = []; 
+  
+  todayShows.shows.forEach(show => {
+    if (show.mh_shows_id.show.radiostation.id === radioId) {
+      const showObj = {
+        from: show.mh_shows_id.from,
+        until: show.mh_shows_id.until,
+        body: show.mh_shows_id.show.body
+      }
+
+      todayShowsForRadioStation.push(showObj);
+    }
+  })
+  
+
+  // console.log();
+
+
+
+  // const station = radiostations.find(station => station.id == radioId);
+
+
+
 
   // Render de radiopagina en geef de gegevens van het station door
-  response.render('radio.liquid', { station });
+  response.render('radio.liquid', { shows: todayShowsForRadioStation});
 });
 
 

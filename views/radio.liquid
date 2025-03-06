@@ -2,4 +2,7 @@
 <p>Welkom bij {{ station.name }}</p>
 <main>
     <p>Hier komt het programma te staan</p>
+    {% for show in shows %}
+        <p>{{ show.body }}</p>
+    {% endfor %}
 </main>
