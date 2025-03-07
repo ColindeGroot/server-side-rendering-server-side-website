@@ -28,12 +28,6 @@ const radiostations = radiostationsResponseJSON.data.map(station => ({
   name: station.name
 }));
 
-// console.log(showsResponseJSON);
-// console.log(showResponseJSON);
-// console.log(usersResponseJSON);
-// console.log(radiostationsResponseJSON);
-// console.log(chatsResponseJSON);
-// console.log(radiostations);
 
 // Maak een nieuwe Express applicatie aan, waarin we de server configureren
 const app = express()
@@ -67,7 +61,7 @@ app.post('/', async function (request, response) {
 app.get('/radio/:id', async function (request, response) {
   const radioId = parseInt(request.params.id);
   // Zoek het juiste radiostation op basis van de ID
-  const showsPerDayResponse = await fetch('https://fdnd-agency.directus.app/items/mh_day?fields=date,shows.mh_shows_id.from,shows.mh_shows_id.until,shows.mh_shows_id.show.body,shows.mh_shows_id.show.radiostation.*');
+  const showsPerDayResponse = await fetch('https://fdnd-agency.directus.app/items/mh_day?fields=date,shows.mh_shows_id.from,shows.mh_shows_id.until,shows.mh_shows_id.show.body,shows.mh_shows_id.show.radiostation.*,shows.mh_shows_id.show.users.mh_users_id.*,shows.mh_shows_id.show.users.*.*');
   const showsPerDayResponseJSON = await showsPerDayResponse.json();
 
   const todaysWeekDay = new Date().getDay();
@@ -80,22 +74,19 @@ app.get('/radio/:id', async function (request, response) {
       const showObj = {
         from: show.mh_shows_id.from,
         until: show.mh_shows_id.until,
-        body: show.mh_shows_id.show.body
+        body: show.mh_shows_id.show.body,
+        // userAvatar: show.mh_shows_id.show.users[0]
+        userAvatar: show.mh_shows_id.show.users[0].mh_users_id.cover
       }
+
+      console.log(showObj)
+      console.log('avatar:',showObj.userAvatar)
 
       todayShowsForRadioStation.push(showObj);
     }
   })
   
-
-  // console.log();
-
-
-
   // const station = radiostations.find(station => station.id == radioId);
-
-
-
 
   // Render de radiopagina en geef de gegevens van het station door
   response.render('radio.liquid', { shows: todayShowsForRadioStation});

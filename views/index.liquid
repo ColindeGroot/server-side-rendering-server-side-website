@@ -1,17 +1,20 @@
 {% render 'partials/head.liquid'%}
 
-<h1>Radiostations</h1>
+<div class="radio-intro">
+    <h1>Radiostations</h1>
+    <p>Kies een radiostation</p>
+</div>
 
-<p>Kies een radiostation</p>
 
 {% for radiostation in radiostations %}
-
-<div class="radiostation">
-    <a href="/radio/{{radiostation.id}}">
-        <h2>{{ radiostation.name }}</h2>
-        <img src="https://fdnd-agency.directus.app/assets/{{radiostation.logo}}" alt="">
-    </a>
-</div>
+<ul class="radiostations">
+    <li class="station-item"> 
+        <a href="/radio/{{radiostation.id}}">
+            <h2>{{ radiostation.name }}</h2>
+            <img src="https://fdnd-agency.directus.app/assets/{{radiostation.logo}}" alt="">
+        </a>
+    </li>
+</ul>
 
 {% endfor %}
 
