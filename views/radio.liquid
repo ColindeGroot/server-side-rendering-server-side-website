@@ -2,7 +2,19 @@
 <p>Welkom bij {{ station.name }}</p>
 <main>
     <p>Hier komt het programma te staan</p>
-    {% for show in shows %}
-        <p>{{ show.body }}</p>
-    {% endfor %}
+
+    <section>
+        {% for show in shows %}
+        {% if show.body!= blank or show.from!= blank show.until!= blank or show.userAvatar!= blank %}
+
+        <div class="programma-item">
+            <h3>{{ show.body }}</h3>
+            <p>van {{ show.from }} tot {{ show.until }}</p>
+            <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="">
+        </div>
+
+        {% endif %}
+        {% endfor %}
+    </section>
+    
 </main>
