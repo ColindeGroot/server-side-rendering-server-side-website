@@ -1,1 +1,32 @@
-h1{color: red;}
+body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    --white:#fff;
+    --background-white:#FAFAFA;
+    --veronica-pink:#FE0170;
+    --veronica-blue:#0091FF;
+}
+
+ol,ul{
+    list-style: none;
+    padding: 0;
+}
+
+.radiostations{
+    margin-left: 3em;
+    background-color: var(--background-white);
+    width: 30rem;
+    .station-item{
+        margin: 1em 0;
+        img{
+            width: 12rem;
+            aspect-ratio: 3/1;
+            object-fit: contain;
+        }
+    }
+}
+
+
+/*programma items*/
