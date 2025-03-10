@@ -72,14 +72,14 @@ app.get('/radio/:id', async function (request, response) {
   todayShows.shows.forEach(show => {
     if (show.mh_shows_id.show.radiostation.id === radioId) {
       const showObj = {
-        from: show.mh_shows_id.from,
+        from: show.mh_shows_id.from, // alle shows moeten tijden hebben om in het schema te komen
         until: show.mh_shows_id.until,
-        body: show.mh_shows_id.show.body,
-        // userAvatar: show.mh_shows_id.show.users[0]
-        userAvatar: show.mh_shows_id.show.users[0].mh_users_id.cover
-      }
+        body: show.mh_shows_id.show.body || "Geen informatie beschikbaar", // || voor debug omdat er anders helemaal niks inlaad
+        userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
+      };
+      
 
-      console.log(showObj)
+      console.log('programma:',showObj.body) // kijken of er misschien een lege body is
       console.log('avatar:',showObj.userAvatar)
 
       todayShowsForRadioStation.push(showObj);
