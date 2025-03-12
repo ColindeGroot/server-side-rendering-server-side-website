@@ -1,36 +1,41 @@
+{% render 'partials/head.liquid'%}
+
 <h1>{{ station.name }}</h1>
 <p>Welkom bij {{ station.name }}</p>
 
 <!-- Kalender: lijst met maandag t/m zaterdag -->
 <ul class="week-calendar">
-  {% for item in weekDays %}
+    {% for item in weekDays %}
     <li class="{% if item.day == selectedDay %}active{% endif %}">
-      <a href="?day={{ item.day }}">{{ item.day | capitalize }} {{ item.dayNumber }}</a>
+        <a href="?day={{ item.day }}">{{ item.day | capitalize }} {{ item.dayNumber }}</a>
     </li>
-  {% endfor %}
+    {% endfor %}
 </ul>
 
 <main>
 
-  <p>Het programma van vandaag:</p>
+    <p>Het programma van vandaag:</p>
 
-  <section>
+    <section>
 
-    {% for show in shows %}
-      {% if show.body != blank or show.from != blank or show.until != blank or show.userAvatar != blank %}
+        {% for show in shows %}
+        {% if show.body != blank or show.from != blank or show.until != blank or show.userAvatar != blank %}
 
         <div class="programma-item">
-          <h3>{{ show.body }}</h3>
-          <p>van {{ show.from }} tot {{ show.until }}</p>
+            <h2>{{ show.name  }}</h2>
+            <p>{{ show.body }}</p>
+            <p>van {{ show.from }} tot {{ show.until }}</p>
 
-          {% if show.userAvatar %}
+            {% if show.userAvatar %}
             <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="User Avatar">
-          {% endif %}
+            {% endif %}
         </div>
 
-      {% endif %}
-    {% endfor %}
+        {% endif %}
+        {% endfor %}
 
-  </section>
+    </section>
 
 </main>
+
+{% render 'partials/foot.liquid'%}

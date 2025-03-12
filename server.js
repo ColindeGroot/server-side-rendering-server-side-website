@@ -5,9 +5,6 @@ import express from 'express'
 // Importeer de Liquid package (ook als dependency via npm geïnstalleerd)
 import { Liquid } from 'liquidjs';
 
-
-// console.log('Test')
-
 const showsResponse = await fetch('https://fdnd-agency.directus.app/items/mh_shows');
 const showsResponseJSON = await showsResponse.json();
 
@@ -73,7 +70,7 @@ app.get('/radio/:name', async function (request, response) {
     4: "donderdag",
     5: "vrijdag",
     6: "zaterdag",
-    0: "zondag"
+    0: "zondag" //zondag heeft geen data
   };
 
   // Bepaal de geselecteerde dag via queryparameter, default naar de huidige dag (of maandag als vandaag zondag is)
@@ -85,7 +82,7 @@ app.get('/radio/:name', async function (request, response) {
   console.log("Geselecteerde dag:", selectedDay);
 
   // Haal de shows-per-dag op
-  const showsPerDayResponse = await fetch('https://fdnd-agency.directus.app/items/mh_day?fields=date,shows.mh_shows_id.from,shows.mh_shows_id.until,shows.mh_shows_id.show.body,shows.mh_shows_id.show.radiostation.*,shows.mh_shows_id.show.users.mh_users_id.*,shows.mh_shows_id.show.users.*.*');
+  const showsPerDayResponse = await fetch('https://fdnd-agency.directus.app/items/mh_day?fields=date,shows.mh_shows_id.from,shows.mh_shows_id.until,shows.mh_shows_id.show.body,shows.mh_shows_id.show.name,shows.mh_shows_id.show.radiostation.*,shows.mh_shows_id.show.users.mh_users_id.*,shows.mh_shows_id.show.users.*.*');
   const showsPerDayResponseJSON = await showsPerDayResponse.json();
 
   // Zoek het item dat overeenkomt met de geselecteerde dag (gebaseerd op de dagnaam)
@@ -97,12 +94,24 @@ app.get('/radio/:name', async function (request, response) {
   
   const filteredShows = selectedDayShows?.shows
     .filter(show => show.mh_shows_id.show.radiostation.name === radioName)
-    .map(show => ({
-      from: show.mh_shows_id.from,
-      until: show.mh_shows_id.until,
-      body: show.mh_shows_id.show.body || "Geen informatie beschikbaar",
-      userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
-    })) || [];
+    .map(show => {
+      return ({
+        from: show.mh_shows_id.from,
+        until: show.mh_shows_id.until,
+        title: show.mh_shows_id.show.name || "Geen titel beschikbaar",
+        body: show.mh_shows_id.show.body || "Geen informatie beschikbaar",
+        userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
+      })}) || [];
+
+
+    showsPerDayResponseJSON.data.forEach(({ shows }) => {
+      shows.forEach((show) => {
+        console.log(show);
+      })
+    })
+    
+    console.log(showsPerDayResponseJSON.data[0].shows[0].mh_shows_id)
+
 
   // Bereken de kalender (maandag t/m zaterdag) met de datum (dagnummer)
   const today = new Date();
