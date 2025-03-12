@@ -30,7 +30,6 @@ const radiostations = radiostationsResponseJSON.data.map(station => ({
 const app = express()
 
 // Gebruik de map 'public' voor statische bestanden (resources zoals CSS, JavaScript, afbeeldingen en fonts)
-// Bestanden in deze map kunnen dus door de browser gebruikt worden
 app.use(express.static('public'))
 
 // Stel Liquid in als 'view engine'
@@ -38,7 +37,6 @@ const engine = new Liquid();
 app.engine('liquid', engine.express()); 
 
 // Stel de map met Liquid templates in
-// Let op: de browser kan deze bestanden niet rechtstreeks laden (zoals voorheen met HTML bestanden)
 app.set('views', './views')
 
 // Maak een GET route voor de index (meestal doe je dit in de root, als /)
@@ -95,6 +93,7 @@ app.get('/radio/:name', async function (request, response) {
   const filteredShows = selectedDayShows?.shows
     .filter(show => show.mh_shows_id.show.radiostation.name === radioName)
     .map(show => {
+      console.log(show.mh_shows_id.show.name)
       return ({
         from: show.mh_shows_id.from,
         until: show.mh_shows_id.until,
@@ -104,13 +103,13 @@ app.get('/radio/:name', async function (request, response) {
       })}) || [];
 
 
-    showsPerDayResponseJSON.data.forEach(({ shows }) => {
-      shows.forEach((show) => {
-        console.log(show);
-      })
-    })
+    // showsPerDayResponseJSON.data.forEach(({ shows }) => {
+    //   shows.forEach((show) => {
+    //     console.log(show);
+    //   })
+    // })
     
-    console.log(showsPerDayResponseJSON.data[0].shows[0].mh_shows_id)
+    // console.log(showsPerDayResponseJSON.data[0].shows[0].mh_shows_id)
 
 
   // Bereken de kalender (maandag t/m zaterdag) met de datum (dagnummer)
