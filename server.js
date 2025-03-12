@@ -55,47 +55,81 @@ app.post('/', async function (request, response) {
   response.redirect(303, '/')
 })
 
-
 app.get('/radio/:name', async function (request, response) {
-  let radioName = decodeURIComponent(request.params.name).replace(/\+/g, ' ');
-  
+  let radioName = request.params.name.replace(/\+/g, ' ');
   console.log("Opgevraagde radio-naam:", radioName);
   console.log("Beschikbare stations:", radiostations.map(s => s.name));
 
   const station = radiostations.find(station => station.name === radioName);
-
   if (!station) {
-      return response.status(404).send('Radiostation niet gevonden');
+    return response.status(404).send('Radiostation niet gevonden');
   }
 
-  // Haal de dag uit de querystring, standaard vandaag
+  // Mapping van getal naar dagnaam (0 = zondag, 1 = maandag, etc.)
+  const dayMapping = {
+    1: "maandag",
+    2: "dinsdag",
+    3: "woensdag",
+    4: "donderdag",
+    5: "vrijdag",
+    6: "zaterdag",
+    0: "zondag"
+  };
+
+  // Bepaal de geselecteerde dag via queryparameter, default naar de huidige dag (of maandag als vandaag zondag is)
   let selectedDay = request.query.day ? request.query.day.toLowerCase() : null;
-  
-  // const station = radiostations.find(station => station.id == radioId);
+  if (!selectedDay || selectedDay === "zondag") {
+    const currentDayNumber = new Date().getDay();
+    selectedDay = (currentDayNumber === 0) ? "maandag" : dayMapping[currentDayNumber];
+  }
+  console.log("Geselecteerde dag:", selectedDay);
 
-  console.log(`Geselecteerde dag: ${selectedDay}`);
-
-  // Haal shows op en filter ze op het juiste station en dag
+  // Haal de shows-per-dag op
   const showsPerDayResponse = await fetch('https://fdnd-agency.directus.app/items/mh_day?fields=date,shows.mh_shows_id.from,shows.mh_shows_id.until,shows.mh_shows_id.show.body,shows.mh_shows_id.show.radiostation.*,shows.mh_shows_id.show.users.mh_users_id.*,shows.mh_shows_id.show.users.*.*');
   const showsPerDayResponseJSON = await showsPerDayResponse.json();
 
-  // Zoek in de database naar de juiste dag
-  const selectedDayShows = showsPerDayResponseJSON.data.find(({ date }) => {
-      const dayOfWeek = new Date(date).getDay();
-      return dayMapping[dayOfWeek] === selectedDay;
+  // Zoek het item dat overeenkomt met de geselecteerde dag (gebaseerd op de dagnaam)
+  const selectedDayShows = showsPerDayResponseJSON.data.find(item => {
+    const dayOfWeek = new Date(item.date).getDay();
+    return dayMapping[dayOfWeek] === selectedDay;
   });
 
-  // Filter de programma's van de geselecteerde dag en het juiste radiostation
+  
   const filteredShows = selectedDayShows?.shows
-      .filter(show => show.mh_shows_id.show.radiostation.name === radioName)
-      .map(show => ({
-          from: show.mh_shows_id.from,
-          until: show.mh_shows_id.until,
-          body: show.mh_shows_id.show.body || "Geen informatie beschikbaar",
-          userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
-      })) || [];
+    .filter(show => show.mh_shows_id.show.radiostation.name === radioName)
+    .map(show => ({
+      from: show.mh_shows_id.from,
+      until: show.mh_shows_id.until,
+      body: show.mh_shows_id.show.body || "Geen informatie beschikbaar",
+      userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
+    })) || [];
 
-  response.render('radio.liquid', { station, shows: filteredShows });
+  // Bereken de kalender (maandag t/m zaterdag) met de datum (dagnummer)
+  const today = new Date();
+  let monday;
+  if (today.getDay() === 0) {
+    // Als vandaag zondag is, stel maandag in als morgen
+    monday = new Date(today);
+    monday.setDate(today.getDate() + 1);
+  } else {
+    // Anders: bereken de maandag van deze week
+    monday = new Date(today);
+    monday.setDate(today.getDate() - (today.getDay() - 1));
+  }
+
+  let weekDays = [];
+  const daysOfWeek = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"];
+  for (let i = 0; i < 6; i++) {
+    let d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    weekDays.push({
+      day: daysOfWeek[i],
+      // Gebruik het dagnummer voor weergave
+      dayNumber: d.getDate()
+    });
+  }
+
+  response.render('radio.liquid', { station, shows: filteredShows, weekDays, selectedDay });
 });
 
 

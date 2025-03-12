@@ -1,28 +1,36 @@
-<h1>{{ station.name }}</h1> 
+<h1>{{ station.name }}</h1>
 <p>Welkom bij {{ station.name }}</p>
 
-<!-- Weekdagen filter -->
-<ul class="dagen-filter">
-    {% assign weekdagen = "maandag,dinsdag,woensdag,donderdag,vrijdag,zaterdag,zondag" | split: "," %}
-    {% for dag in weekdagen %}
-        <li><a href="?day={{ dag | url_encode }}">{{ dag }}</a></li>
-    {% endfor %}
+<!-- Kalender: lijst met maandag t/m zaterdag -->
+<ul class="week-calendar">
+  {% for item in weekDays %}
+    <li class="{% if item.day == selectedDay %}active{% endif %}">
+      <a href="?day={{ item.day }}">{{ item.day | capitalize }} {{ item.dayNumber }}</a>
+    </li>
+  {% endfor %}
 </ul>
 
 <main>
-    <p>Hier komt het programma te staan</p>
 
-    <section>
-        {% for show in shows %}
-        {% if show.body != blank or show.from != blank or show.until != blank or show.userAvatar != blank %}
+  <p>Het programma van vandaag:</p>
+
+  <section>
+
+    {% for show in shows %}
+      {% if show.body != blank or show.from != blank or show.until != blank or show.userAvatar != blank %}
+
         <div class="programma-item">
-            <h3>{{ show.body }}</h3>
-            <p>van {{ show.from }} tot {{ show.until }}</p>
-            {% if show.userAvatar %}
-                <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="User Avatar">
-            {% endif %}
+          <h3>{{ show.body }}</h3>
+          <p>van {{ show.from }} tot {{ show.until }}</p>
+
+          {% if show.userAvatar %}
+            <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="User Avatar">
+          {% endif %}
         </div>
-        {% endif %}
-        {% endfor %}
-    </section>
+
+      {% endif %}
+    {% endfor %}
+
+  </section>
+
 </main>
