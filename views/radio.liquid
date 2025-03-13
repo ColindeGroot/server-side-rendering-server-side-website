@@ -1,4 +1,4 @@
-{% render 'partials/head.liquid'%}
+{% render 'partials/head.liquid' %}
 
 <h1>{{ station.name }}</h1>
 <p>Welkom bij {{ station.name }}</p>
@@ -13,29 +13,49 @@
 </ul>
 
 <main>
-
     <p>Het programma van vandaag:</p>
 
-    <section>
-
-        {% for show in shows %}
-        {% if show.title != blank or show.body != blank or show.from != blank or show.until != blank or show.userAvatar != blank %}
-
-        <div class="programma-item">
-            <h2>{{ show.title }}</h2>
-            <p>{{ show.body }}</p>
-            <p>van {{ show.from }} tot {{ show.until }}</p>
-
-            {% if show.userAvatar %}
-            <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="User Avatar">
-            {% endif %}
-        </div>
-
-        {% endif %}
-        {% endfor %}
-
-    </section>
-
+    <div class="schedule-container">
+        <table class="schedule">
+            <thead>
+              <tr>
+                {% for label in timeSlots %}
+                  <th>{{ label }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {% assign currentSlot = 0 %}
+                {% assign sortedShows = shows | sort: "slotStart" %}
+                
+                {% for show in sortedShows %}
+                  {% if currentSlot < show.slotStart %}
+                    {% assign gap = show.slotStart | minus: currentSlot %}
+                    <td colspan="{{ gap }}"></td>
+                    {% assign currentSlot = show.slotStart %}
+                  {% endif %}
+        
+                  <td colspan="{{ show.colspan }}" class="show-cell">
+                    <strong>{{ show.title }}</strong><br>
+                    {{ show.body }}<br>
+                    <span>{{ show.from }} - {{ show.until }}</span><br>
+                    {% if show.userAvatar %}
+                      <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="Avatar">
+                    {% endif %}
+                  </td>
+                  
+                  {% assign currentSlot = currentSlot | plus: show.colspan %}
+                {% endfor %}
+                
+                {% if currentSlot < totalSlots %}
+                  {% assign gap = totalSlots | minus: currentSlot %}
+                  <td colspan="{{ gap }}"></td>
+                {% endif %}
+              </tr>
+            </tbody>
+          </table>
+    </div>
 </main>
 
-{% render 'partials/foot.liquid'%}
+{% render 'partials/foot.liquid' %}

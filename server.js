@@ -5,6 +5,7 @@ import express from 'express'
 // Importeer de Liquid package (ook als dependency via npm geïnstalleerd)
 import { Liquid } from 'liquidjs';
 
+//alleen radio word nog gebruikt
 const showsResponse = await fetch('https://fdnd-agency.directus.app/items/mh_shows');
 const showsResponseJSON = await showsResponse.json();
 
@@ -50,6 +51,12 @@ app.post('/', async function (request, response) {
   response.redirect(303, '/')
 })
 
+// Helper om een tijd (HH:MM) om te rekenen naar minuten na middernacht
+function timeToMinutes(time) {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
 app.get('/radio/:name', async function (request, response) {
   let radioName = request.params.name.replace(/\+/g, ' ');
   console.log("Opgevraagde radio-naam:", radioName);
@@ -60,7 +67,7 @@ app.get('/radio/:name', async function (request, response) {
     return response.status(404).send('Radiostation niet gevonden');
   }
 
-  // Mapping van getal naar dagnaam (0 = zondag, 1 = maandag, etc.)
+  // Day mapping (0 = zondag, 1 = maandag, etc.)
   const dayMapping = {
     1: "maandag",
     2: "dinsdag",
@@ -68,7 +75,7 @@ app.get('/radio/:name', async function (request, response) {
     4: "donderdag",
     5: "vrijdag",
     6: "zaterdag",
-    0: "zondag" //zondag heeft geen data
+    0: "zondag" // zondag heeft geen data
   };
 
   // Bepaal de geselecteerde dag via queryparameter, default naar de huidige dag (of maandag als vandaag zondag is)
@@ -89,63 +96,94 @@ app.get('/radio/:name', async function (request, response) {
     return dayMapping[dayOfWeek] === selectedDay;
   });
 
-  
+  // Filter de programma's voor het radiostation hulp van chad om een find en map te gebruiken ipv return functie
   const filteredShows = selectedDayShows?.shows
     .filter(show => show.mh_shows_id.show.radiostation.name === radioName)
-    .map(show => {
-      console.log(show.mh_shows_id.show.name)
-      return ({
-        from: show.mh_shows_id.from,
-        until: show.mh_shows_id.until,
-        title: show.mh_shows_id.show.name || "Geen titel beschikbaar",
-        body: show.mh_shows_id.show.body || "Geen informatie beschikbaar",
-        userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
-      })}) || [];
+    .map(show => ({
+      from: show.mh_shows_id.from,
+      until: show.mh_shows_id.until,
+      title: show.mh_shows_id.show.name || "Geen titel beschikbaar",
+      body: show.mh_shows_id.show.body || "Geen informatie beschikbaar",
+      userAvatar: show.mh_shows_id.show.users?.[0]?.mh_users_id?.cover || null
+    })) || [];
+
+  // Als er geen shows zijn, voorkom dan fouten bij de berekening
+  if (filteredShows.length === 0) {
+    return response.render('radio.liquid', { 
+      station, 
+      shows: [], 
+      weekDays: [], 
+      selectedDay, 
+      timeSlots: [] 
+    });
+  }
+
+  // Bereken de vroegste en laatste tijd uit de shows 
+  const startTimes = filteredShows.map(show => timeToMinutes(show.from));
+  const endTimes = filteredShows.map(show => timeToMinutes(show.until));
+  const earliest = Math.min(...startTimes);
+  const latest = Math.max(...endTimes);
 
 
-    // showsPerDayResponseJSON.data.forEach(({ shows }) => {
-    //   shows.forEach((show) => {
-    //     console.log(show);
-    //   })
-    // })
-    
-    // console.log(showsPerDayResponseJSON.data[0].shows[0].mh_shows_id)
+  const slotDuration = 60; // een uur per table item
+  const totalSlots = Math.ceil((latest - earliest) / slotDuration);
 
+  // Voor elke show: bereken de start-slot index en het aantal slots (colspan)
+  filteredShows.forEach(show => {
+    const showStart = timeToMinutes(show.from);
+    const showEnd = timeToMinutes(show.until);
+    show.slotStart = Math.floor((showStart - earliest) / slotDuration);
+    show.colspan = Math.ceil((showEnd - showStart) / slotDuration);
+  });
 
-  // Bereken de kalender (maandag t/m zaterdag) met de datum (dagnummer)
+  // Bouw een array met tijdlabels voor de header
+  let timeSlots = [];
+  for (let i = 0; i <= totalSlots; i++) {
+    const minutes = earliest + i * slotDuration;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    // met padstart er voor zorgen dat er 00 achterkomt voor de tijd. ( 15 - 15:00 )
+    const label = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    timeSlots.push(label);
+  }
+
+  // zelf nog ff mee spelen op test omgeving gezoen 
   const today = new Date();
   let monday;
   if (today.getDay() === 0) {
-    // Als vandaag zondag is, stel maandag in als morgen
     monday = new Date(today);
     monday.setDate(today.getDate() + 1);
   } else {
-    // Anders: bereken de maandag van deze week
     monday = new Date(today);
     monday.setDate(today.getDate() - (today.getDay() - 1));
   }
 
+  // object met datums waar er op gefilterd gaat worden
   let weekDays = [];
   const daysOfWeek = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"];
   for (let i = 0; i < 6; i++) {
-    let d = new Date(monday);
+    let d = new Date(monday); //begin filter maandag
     d.setDate(monday.getDate() + i);
     weekDays.push({
       day: daysOfWeek[i],
-      // Gebruik het dagnummer voor weergave
       dayNumber: d.getDate()
     });
   }
 
-  response.render('radio.liquid', { station, shows: filteredShows, weekDays, selectedDay });
+  response.render('radio.liquid', { 
+    station, 
+    shows: filteredShows, 
+    weekDays, 
+    selectedDay, 
+    timeSlots, 
+    totalSlots 
+  });
 });
-
-
 
 app.set('port', process.env.PORT || 8000)
 
-// Start Express op, haal daarbij het zojuist ingestelde poortnummer op
+
 app.listen(app.get('port'), function () {
-  // Toon een bericht in de console en geef het poortnummer door
+ 
   console.log(`Application started on http://localhost:${app.get('port')}`)
 })
