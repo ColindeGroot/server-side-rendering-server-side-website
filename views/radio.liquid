@@ -37,11 +37,11 @@
                   {% endif %}
         
                   <td colspan="{{ show.colspan }}" class="show-cell">
-                    <strong>{{ show.title }}</strong><br>
-                    {{ show.body }}<br>
-                    <span>{{ show.from }} - {{ show.until }}</span><br>
+                    <h3 class="show-title">{{ show.title }}</h3>
+                    <span class="show-time">{{ show.from }} - {{ show.until }}</span>
+                    <p>{{ show.body  }}</p>
                     {% if show.userAvatar %}
-                      <img src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="Avatar">
+                      <img class="show-image" src="https://fdnd-agency.directus.app/assets/{{ show.userAvatar }}" alt="Avatar">
                     {% endif %}
                   </td>
                   
