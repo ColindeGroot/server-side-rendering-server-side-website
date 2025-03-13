@@ -1,7 +1,8 @@
-body{
+body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    min-height: 100vh;
 
     --white:#fff;
     --background-white:#FAFAFA;
@@ -14,13 +15,25 @@ ol,ul{
     padding: 0;
 }
 
-.radiostations{
+/* partials  */
+
+.navigation{
+    background-color:var(--veronica-blue);
+    color: var(--white);
+    font-size: 18px;
+    height: 10vh;
+}
+
+/* home */
+.radiostations {
     margin-left: 3em;
     background-color: var(--background-white);
     width: 30rem;
-    .station-item{
+
+    .station-item {
         margin: 1em 0;
-        img{
+
+        img {
             width: 12rem;
             aspect-ratio: 3/1;
             object-fit: contain;
@@ -29,4 +42,92 @@ ol,ul{
 }
 
 
-/*programma items*/
+/* radiopagina */
+
+/* filter */
+.week-calendar{
+    width: 300px;
+    li{
+        background-color: var(--white);
+        a{
+            font-size: calc(100% + 3px);
+            text-decoration: none;
+            font-weight: bold;
+            color: var(--veronica-pink);
+        }
+    }
+
+    li.active{
+        background-color: var(--veronica-pink);
+        a{
+            color: var(--white);
+        }
+    }
+
+}
+
+.schedule-container {
+    max-width: 100%;
+    margin-bottom: 1rem;
+
+    overflow-x: auto;
+}
+
+.schedule {
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0.5em 1em;
+    width: 5000px; /* voor nu ff zo gezien de toch geen extra tijden bij komen */
+
+    th {
+        position: relative;
+        width: calc(100% / 25); /* delen door aantal tijden zichtbaar 0 tm 24 */
+        text-align: left;
+        
+
+        td {
+            display: grid; /* enkel voor de gap niet layout dus one-column layout :D*/
+            gap: 10px;
+            border-radius: 0.5em;
+            min-height: 100px;
+            box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+            padding: 1em 2em;
+            margin: 0 0.5em;
+    
+            img{
+                width: 100px;
+                aspect-ratio: 1;
+            }
+        }
+    }
+
+    tr{
+
+        td {
+            min-height: 100px;
+            box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+            padding: 1em 2em;
+            margin: 0 0.5em;
+
+            .show-time{ /*span*/
+                display: block;
+                opacity: 0.8;
+            }
+
+            .show-body{
+                margin: 10px 0;
+            }
+    
+            img{
+                width: 100px;
+                aspect-ratio: 1;
+                border-radius: 50%;
+            }
+        }
+    }
+
+    
+}
+
+
+
